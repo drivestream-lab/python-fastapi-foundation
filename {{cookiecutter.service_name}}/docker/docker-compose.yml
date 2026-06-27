@@ -1,0 +1,40 @@
+version: "3.9"
+# Local infra for {{cookiecutter.service_name}} development and verify tests
+services:
+{% if cookiecutter.has_postgres == "yes" %}
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: {{cookiecutter.service_name}}_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+{% endif %}
+{% if cookiecutter.has_redis == "yes" %}
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+{% endif %}
+{% if cookiecutter.has_kafka == "yes" %}
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      CLUSTER_ID: "{{cookiecutter.service_name}}-local-cluster"
+    ports:
+      - "9092:9092"
+{% endif %}
+{% if cookiecutter.has_postgres == "yes" %}
+volumes:
+  postgres_data:
+{% endif %}

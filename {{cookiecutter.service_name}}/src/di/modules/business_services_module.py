@@ -1,0 +1,9 @@
+"""Business services DI module for {{cookiecutter.service_name}}."""
+
+from injector import Module, Binder, singleton
+
+
+class BusinessServicesModule(Module):
+    def configure(self, binder: Binder) -> None:
+        # Add business service bindings as waves deliver them
+        pass

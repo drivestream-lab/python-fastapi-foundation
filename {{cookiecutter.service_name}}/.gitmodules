@@ -1,0 +1,4 @@
+[submodule ".cursor/rules"]
+    path = .cursor/rules
+    url = git@github.com:autrio10x/python-services-rules.git
+    branch = main
