@@ -170,6 +170,49 @@ Every PR should update `docs/specification/as-built/implementation-status.md` to
 
 ---
 
+## Verify the template (fix scaffold first, then launchpad)
+
+**SSOT for foundation code is this repo** — not individual app repos. Suchana (or the next greenfield module) is the **canary** to prove the template works end-to-end.
+
+```text
+python-fastapi-foundation   ← fix bugs here (pyproject, auth __init__, logging, …)
+         │
+         ▼
+launchpad scaffold --repo suchana --apply --force   ← overlay into git clone (preserves .git)
+         │
+         ▼
+make setup && make format && make check && make test
+launchpad sync-harness --repo suchana --apply
+         │
+         ▼
+green on canary → publish foundation / merge scaffold PR
+```
+
+**Do not** patch Suchana-only fixes that belong in the template — they will be lost on the next overlay and will break tarang/setu/etc.
+
+**Recommended canary loop:**
+
+```bash
+# 1. Edit python-fastapi-foundation (commit on foundation repo)
+
+# 2. Overlay into existing suchana checkout (develop or chore branch)
+cd drivestream-meta
+launchpad scaffold --repo suchana --apply --force
+
+# 3. Day-1 gate
+cd ../suchana
+make setup && make format && make check && make test
+
+# 4. Harness envelope (separate commit on app repo)
+cd ../drivestream-meta
+launchpad sync-harness --repo suchana --apply
+launchpad verify-harness --repo suchana
+```
+
+App-specific code (W0 adapters, iac-local, domain routes) stays **only in the app repo** — never in the foundation template.
+
+---
+
 ## Harness sync (after repo creation)
 
 ```bash

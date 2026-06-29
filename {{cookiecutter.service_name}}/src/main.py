@@ -1,7 +1,9 @@
 """Main entry point for {{cookiecutter.service_name | title}}."""
 
-import os, uuid
-import dotenv, uvicorn
+import os
+import uuid
+import dotenv
+import uvicorn
 from src.app import create_app
 from src.logging import get_logger, setup_logging, LoggingContext
 from src.configs.app_settings import AppSettings

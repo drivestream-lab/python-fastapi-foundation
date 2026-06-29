@@ -3,6 +3,7 @@ name = "{{cookiecutter.service_name}}"
 version = "0.1.0"
 description = "{{cookiecutter.service_description}}"
 authors = ["DriveStream Team"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
@@ -82,10 +83,11 @@ target-version = ["py312"]
 
 [tool.ruff]
 line-length = 100
+target-version = "py312"
 
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
-ignore = ["E501"]
+[tool.ruff.lint.per-file-ignores]
+"tests/debug/*.py" = ["E402"]
+"scripts/*.py" = ["E402"]
 
 [tool.pyright]
 pythonVersion = "3.12"

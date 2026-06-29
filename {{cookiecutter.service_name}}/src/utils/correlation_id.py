@@ -1,6 +1,7 @@
 """Correlation ID middleware for {{cookiecutter.service_name}}."""
 
-import time, uuid
+import time
+import uuid
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from src.logging import get_logger, set_correlation_id
@@ -17,9 +18,16 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
         request.state.correlation_id = cid
         set_correlation_id(cid)
         start = time.time()
-        logger.debug("Request started", correlation_id=cid, method=request.method, path=request.url.path)
+        logger.debug(
+            "Request started", correlation_id=cid, method=request.method, path=request.url.path
+        )
         response = await call_next(request)
-        logger.debug("Request completed", correlation_id=cid, method=request.method,
-                     path=request.url.path, duration_seconds=round(time.time() - start, 3))
+        logger.debug(
+            "Request completed",
+            correlation_id=cid,
+            method=request.method,
+            path=request.url.path,
+            duration_seconds=round(time.time() - start, 3),
+        )
         response.headers[_HEADER_NAME] = cid
         return response

@@ -1,12 +1,16 @@
 """Logging context for {{cookiecutter.service_name}}."""
 
-import contextvars, functools, uuid
+import contextvars
+import functools
+import uuid
 from contextlib import contextmanager
 from typing import Any, Callable, Iterator, Optional, TypeVar, Union
 from uuid import UUID
 from loguru import logger
 
-correlation_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("correlation_id", default="")
+correlation_id_var: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "correlation_id", default=""
+)
 LogContextValue = Union[str, UUID, int, None]
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -30,6 +34,7 @@ def correlation_id(func: F) -> F:
             finally:
                 correlation_id_var.reset(token)
         return func(*args, **kwargs)
+
     return wrapper  # type: ignore
 
 

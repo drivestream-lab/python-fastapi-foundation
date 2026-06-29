@@ -1,6 +1,6 @@
 """Infra DI module for {{cookiecutter.service_name}} — register infra services here."""
 
-from injector import Module, Binder, singleton
+from injector import Module, Binder
 
 
 class InfraModule(Module):

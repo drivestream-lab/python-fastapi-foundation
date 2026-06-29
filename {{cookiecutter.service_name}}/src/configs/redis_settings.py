@@ -24,7 +24,9 @@ class RedisSettings(BaseSettings):
     @property
     def connection_params(self) -> Dict[str, Any]:
         params: Dict[str, Any] = {
-            "host": self.host, "port": self.port, "db": self.db,
+            "host": self.host,
+            "port": self.port,
+            "db": self.db,
             "socket_timeout": self.socket_timeout,
             "socket_connect_timeout": self.connection_timeout,
             "retry_on_timeout": self.retry_on_timeout,

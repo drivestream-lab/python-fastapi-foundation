@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import subprocess
 
 # ── cookiecutter variables (rendered at generation time) ─────────────────────
 SERVICE_NAME   = "{{cookiecutter.service_name}}"
@@ -90,6 +91,18 @@ if not ABHILEKH:
 if not KAVACH:
     rm("src/configs/kavach_settings.py")
     rm("src/infra_services/kavach_client.py")
+
+
+def format_python() -> None:
+    """Normalize jinja-rendered whitespace so ``make check`` passes without ``make format``."""
+    black = shutil.which("black")
+    if not black:
+        print("Note: black not on PATH — run `make format` before `make check`.")
+        return
+    subprocess.run([black, "--line-length", "100", "src", "tests"], check=False)
+
+
+format_python()
 
 # ── report ────────────────────────────────────────────────────────────────────
 print(f"""

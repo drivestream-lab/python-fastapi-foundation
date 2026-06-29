@@ -1,6 +1,6 @@
 """Business services DI module for {{cookiecutter.service_name}}."""
 
-from injector import Module, Binder, singleton
+from injector import Module, Binder
 
 
 class BusinessServicesModule(Module):

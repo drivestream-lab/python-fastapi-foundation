@@ -19,8 +19,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
         if not token:
-            return JSONResponse(status_code=401,
-                                content={"status": "error", "error": {"code": "UNAUTHORIZED",
-                                                                       "message": "Missing token"}})
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "status": "error",
+                    "error": {"code": "UNAUTHORIZED", "message": "Missing token"},
+                },
+            )
         # TODO W0: verify JWT with python-jose using self.config.public_key_path
         return await call_next(request)

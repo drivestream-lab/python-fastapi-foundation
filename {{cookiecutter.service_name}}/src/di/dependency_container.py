@@ -1,6 +1,6 @@
 """Dependency injection container for {{cookiecutter.service_name}}."""
 
-from typing import Any, Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar
 from injector import Injector
 from src.logging import get_logger
 
@@ -11,27 +11,11 @@ logger = get_logger()
 # ── Register infra services here (keep in sync with InfraModule) ──────────────
 # Add service types as you implement each wave.
 _INFRA_SERVICE_TYPES: tuple[type, ...] = (
-{%- if cookiecutter.has_telemetry == "yes" %}
     # TelemetryService,   # uncomment after implementing W0
-{%- endif %}
-{%- if cookiecutter.has_postgres == "yes" %}
     # PostgresService,    # uncomment after implementing W0
-{%- endif %}
-{%- if cookiecutter.has_redis == "yes" %}
     # RedisService,       # uncomment after implementing W0
-{%- endif %}
-{%- if cookiecutter.has_kafka == "yes" %}
     # KafkaConsumerService,  # uncomment after implementing W0
-{%- endif %}
-{%- if cookiecutter.parichay_client == "yes" %}
     # ParichayClient,     # uncomment after implementing W0
-{%- endif %}
-{%- if cookiecutter.abhilekh_client == "yes" %}
-    # AbhilekhClient,     # uncomment after implementing W0
-{%- endif %}
-{%- if cookiecutter.kavach_client == "yes" %}
-    # KavachClient,       # uncomment after implementing W0
-{%- endif %}
 )
 
 # ── Register business services here (keep in sync with BusinessServicesModule) ─
@@ -43,6 +27,7 @@ _BUSINESS_SERVICE_TYPES: tuple[type, ...] = (
 def configure_container() -> Injector:
     from src.di.modules.infra_module import InfraModule
     from src.di.modules.business_services_module import BusinessServicesModule
+
     global _injector
     if _injector is None:
         logger.info("Configuring DI container")

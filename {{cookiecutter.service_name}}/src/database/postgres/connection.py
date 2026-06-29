@@ -13,8 +13,9 @@ _session_factory: async_sessionmaker[AsyncSession] | None = None
 def init_engine() -> async_sessionmaker[AsyncSession]:
     global _session_factory
     settings = PostgresSettings.get_instance()
-    engine = create_async_engine(settings.sqlalchemy_database_uri,
-                                  **settings.sqlalchemy_engine_args)
+    engine = create_async_engine(
+        settings.sqlalchemy_database_uri, **settings.sqlalchemy_engine_args
+    )
     _session_factory = async_sessionmaker(engine, expire_on_commit=False)
     logger.info("Postgres engine initialised")
     return _session_factory

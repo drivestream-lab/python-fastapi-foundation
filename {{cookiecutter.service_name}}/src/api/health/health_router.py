@@ -1,64 +1,69 @@
 """Health check router for {{cookiecutter.service_name}}."""
 
-from fastapi import APIRouter, Query
-from src.logging import get_logger
-from src.models.health_models import (
-    HealthDetailedResponse, HealthSimpleResponse, HealthStatusType, ServiceHealthDetailModel,
-)
+from fastapi import APIRouter, Depends, Query
 
 {% if cookiecutter.has_postgres == "yes" %}
-from fastapi import Depends
+from src.api.dependencies import get_postgres_service
 from src.infra_services.postgres_service import PostgresService
 {% endif %}
 {% if cookiecutter.has_redis == "yes" %}
-from fastapi import Depends
+from src.api.dependencies import get_redis_service
 from src.infra_services.redis_service import RedisService
 {% endif %}
+from src.logging import get_logger
+from src.models.health_models import (
+    HealthDetailedResponse,
+    HealthSimpleResponse,
+    HealthStatusType,
+    ServiceHealthDetailModel,
+)
 
 logger = get_logger()
 router = APIRouter(tags=["Health"])
-
-
-async def _check(name: str, fn) -> tuple[bool, dict]:
-    try:
-        ok = await fn()
-        return ok, {"healthy": ok}
-    except Exception as e:
-        logger.error("Health check failed", service=name, error=str(e))
-        return False, {"healthy": False}
 
 
 @router.get("/health", response_model=HealthSimpleResponse | HealthDetailedResponse)
 async def health_check(
     detailed: bool = Query(default=False, description="Return detailed dependency health"),
 {%- if cookiecutter.has_postgres == "yes" %}
-    postgres_service: PostgresService = Depends(lambda: None),  # inject via DI after W0
+    postgres_service: PostgresService = Depends(get_postgres_service),
 {%- endif %}
 {%- if cookiecutter.has_redis == "yes" %}
-    redis_service: RedisService = Depends(lambda: None),        # inject via DI after W0
+    redis_service: RedisService = Depends(get_redis_service),
 {%- endif %}
 ) -> HealthSimpleResponse | HealthDetailedResponse:
-    """GET /health — simple liveness by default; ?detailed=true checks all infra."""
+    """GET /health — simple liveness by default; ?detailed=true checks infra."""
     if not detailed:
         return HealthSimpleResponse()
 
-    services: dict[str, ServiceHealthDetailModel] = {}
     all_healthy = True
+    services: dict[str, ServiceHealthDetailModel] = {}
 
 {%- if cookiecutter.has_postgres == "yes" %}
-    ok, det = await _check("postgres", postgres_service.health_check) if postgres_service else (False, {"healthy": False})
+    postgres_healthy = False
+    try:
+        postgres_healthy = await postgres_service.health_check()
+    except Exception as e:
+        logger.error("Error checking PostgreSQL health", error=str(e))
     services["postgres"] = ServiceHealthDetailModel(
-        status=HealthStatusType.UP if ok else HealthStatusType.DOWN, details=det)
-    all_healthy = all_healthy and ok
+        status=HealthStatusType.UP if postgres_healthy else HealthStatusType.DOWN,
+        details={"healthy": postgres_healthy},
+    )
+    all_healthy = all_healthy and postgres_healthy
+
 {%- endif %}
 {%- if cookiecutter.has_redis == "yes" %}
-    ok, det = await _check("redis", redis_service.health_check) if redis_service else (False, {"healthy": False})
+    redis_healthy = False
+    try:
+        redis_healthy = await redis_service.health_check()
+    except Exception as e:
+        logger.error("Error checking Redis health", error=str(e))
     services["redis"] = ServiceHealthDetailModel(
-        status=HealthStatusType.UP if ok else HealthStatusType.DOWN, details=det)
-    all_healthy = all_healthy and ok
-{%- endif %}
-
-    return HealthDetailedResponse(
-        status=HealthStatusType.UP if all_healthy else HealthStatusType.DOWN,
-        services=services,
+        status=HealthStatusType.UP if redis_healthy else HealthStatusType.DOWN,
+        details={"healthy": redis_healthy},
     )
+    all_healthy = all_healthy and redis_healthy
+
+{%- endif %}
+    agg = HealthStatusType.UP if all_healthy else HealthStatusType.DOWN
+    return HealthDetailedResponse(status=agg, services=services)
