@@ -1,4 +1,4 @@
-.PHONY: setup check format-check lint-check format lint types layers test run verify-preflight verify
+.PHONY: setup check format-check lint-check format lint types layers test run
 
 # First-time setup: creates .venv, installs deps, installs pre-commit hooks.
 # Run once after cloning: make setup
@@ -33,9 +33,3 @@ test:
 
 run:
 	.venv/bin/python -m src.main
-
-verify-preflight:
-	.venv/bin/python -m tests._helpers.verify_preflight
-
-verify: verify-preflight
-	.venv/bin/python -m tests.verify.verify_all

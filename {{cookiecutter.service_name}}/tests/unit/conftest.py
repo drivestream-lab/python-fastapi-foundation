@@ -1,6 +1,7 @@
 """Shared fixtures for unit tests (settings reset, TestClient without lifespan)."""
 
 import os
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,12 +10,16 @@ from src.app import create_app
 from src.configs.base_settings import BaseSettings
 from src.di.dependency_container import configure_container, reset_container
 
+_FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
+
 
 @pytest.fixture(autouse=True)
 def reset_settings() -> None:
     """Clear settings singletons and set minimal env for in-process tests."""
-    os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-ci-only")
-    os.environ.setdefault("JWT_ALGORITHM", "HS256")
+    {%- if cookiecutter.auth_mode == "jwt" %}
+    os.environ.setdefault("JWT_PUBLIC_KEY_PATH", str(_FIXTURES / "jwt_public.pem"))
+    os.environ.setdefault("JWT_ALGORITHM", "RS256")
+    {%- endif %}
     for name in (
         "AppSettings",
         {%- if cookiecutter.auth_mode == "jwt" %}

@@ -20,16 +20,17 @@ from src.di.dependency_container import (
 )
 
 
+{% if cookiecutter.has_internal_api == "yes" %}
 from src.api.internal import internal_router
-
-
+{% endif %}
+{% if cookiecutter.has_telemetry == "yes" %}
 from src.infra_services.telemetry_service import TelemetryService
 from src.di.dependency_container import provide_service
-
-
+{% endif %}
+{% if cookiecutter.auth_mode == "jwt" %}
 from src.common.auth import AuthConfig, AuthMiddleware
 from src.configs.jwt_settings import JWTSettings
-
+{% endif %}
 
 logger = get_logger()
 
@@ -43,7 +44,9 @@ async def lifespan(app: FastAPI):
         app.state.container = container
         try:
             await initialize_all_services()
+{% if cookiecutter.has_telemetry == "yes" %}
             provide_service(TelemetryService).instrument_app(app)
+{% endif %}
             logger.info("All services initialized successfully")
         except Exception:
             logger.exception("Service initialization failed")
@@ -78,15 +81,22 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+{% if cookiecutter.auth_mode == "jwt" %}
     jwt_settings = JWTSettings.get_instance()
     auth_config = AuthConfig(
         issuer=jwt_settings.issuer,
         audience=jwt_settings.audience,
-        public_paths=["/health"],
-        algorithm=jwt_settings.algorithm,
         public_key_path=jwt_settings.public_key_path,
+        public_paths=[
+            "/health",
+{% if cookiecutter.has_internal_api == "yes" %}
+            "/internal",
+{% endif %}
+        ],
+        algorithm="RS256",
     )
     app.add_middleware(AuthMiddleware, config=auth_config)
+{% endif %}
 
     app.add_middleware(CorrelationIdMiddleware)
 
@@ -110,7 +120,9 @@ def create_app() -> FastAPI:
         )
 
     app.include_router(health_router)
+{% if cookiecutter.has_internal_api == "yes" %}
     app.include_router(internal_router)
+{% endif %}
     app.include_router(api_router, prefix="/api/v1")
 
     logger.info("FastAPI application configured")
