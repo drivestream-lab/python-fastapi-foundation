@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 echo "Setting up {{cookiecutter.service_name}} development environment..."
-[ ! -d ".venv" ] && python3 -m venv .venv
+if [ ! -x ".venv/bin/pip" ]; then
+  rm -rf .venv
+  python3 -m venv .venv
+fi
 .venv/bin/pip install --upgrade pip poetry
 .venv/bin/poetry install --with dev
 .venv/bin/pre-commit install
