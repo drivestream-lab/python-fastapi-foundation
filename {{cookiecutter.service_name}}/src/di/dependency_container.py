@@ -1,32 +1,88 @@
 """Dependency injection container for {{cookiecutter.service_name}}."""
 
 from typing import Optional, Type, TypeVar
+
 from injector import Injector
+
 from src.logging import get_logger
+{%- if cookiecutter.has_telemetry == "yes" %}
+from src.infra_services.telemetry_service import TelemetryService
+{%- endif %}
+{%- if cookiecutter.has_postgres == "yes" %}
+from src.infra_services.postgres_service import PostgresService
+{%- endif %}
+{%- if cookiecutter.has_redis == "yes" %}
+from src.infra_services.redis_service import RedisService
+{%- endif %}
+{%- if cookiecutter.has_kafka == "yes" %}
+from src.infra_services.kafka_consumer_service import KafkaConsumerService
+{%- endif %}
+{%- if cookiecutter.has_s3 == "yes" %}
+from src.infra_services.s3_service import S3Service
+{%- endif %}
+{%- if cookiecutter.has_cratedb == "yes" %}
+from src.infra_services.cratedb_service import CrateDBService
+{%- endif %}
+{%- if cookiecutter.has_emqx == "yes" %}
+from src.infra_services.emqx_publish_service import EmqxPublishService
+{%- endif %}
+{%- if cookiecutter.parichay_client == "yes" %}
+from src.infra_services.parichay_client import ParichayClient
+{%- endif %}
+{%- if cookiecutter.abhilekh_client == "yes" %}
+from src.infra_services.abhilekh_client import AbhilekhClient
+{%- endif %}
+{%- if cookiecutter.kavach_client == "yes" %}
+from src.infra_services.kavach_client import KavachClient
+{%- endif %}
 
 T = TypeVar("T")
 _injector: Optional[Injector] = None
 logger = get_logger()
 
-# ── Register infra services here (keep in sync with InfraModule) ──────────────
-# Add service types as you implement each wave.
+# Keep in sync with bindings in src/di/modules/infra_module.py (lifecycle services only).
 _INFRA_SERVICE_TYPES: tuple[type, ...] = (
-    # TelemetryService,   # uncomment after implementing W0
-    # PostgresService,    # uncomment after implementing W0
-    # RedisService,       # uncomment after implementing W0
-    # KafkaConsumerService,  # uncomment after implementing W0
-    # ParichayClient,     # uncomment after implementing W0
+{%- if cookiecutter.has_telemetry == "yes" %}
+    TelemetryService,
+{%- endif %}
+{%- if cookiecutter.has_postgres == "yes" %}
+    PostgresService,
+{%- endif %}
+{%- if cookiecutter.has_redis == "yes" %}
+    RedisService,
+{%- endif %}
+{%- if cookiecutter.has_kafka == "yes" %}
+    KafkaConsumerService,
+{%- endif %}
+{%- if cookiecutter.has_s3 == "yes" %}
+    S3Service,
+{%- endif %}
+{%- if cookiecutter.has_cratedb == "yes" %}
+    CrateDBService,
+{%- endif %}
+{%- if cookiecutter.has_emqx == "yes" %}
+    EmqxPublishService,
+{%- endif %}
+{%- if cookiecutter.parichay_client == "yes" %}
+    ParichayClient,
+{%- endif %}
+{%- if cookiecutter.abhilekh_client == "yes" %}
+    AbhilekhClient,
+{%- endif %}
+{%- if cookiecutter.kavach_client == "yes" %}
+    KavachClient,
+{%- endif %}
 )
 
-# ── Register business services here (keep in sync with BusinessServicesModule) ─
+# Keep in sync with bindings in src/di/modules/business_services_module.py.
 _BUSINESS_SERVICE_TYPES: tuple[type, ...] = (
-    # Add as waves deliver them
+    # Add business services as feature waves deliver them.
 )
 
 
 def configure_container() -> Injector:
-    from src.di.modules.infra_module import InfraModule
     from src.di.modules.business_services_module import BusinessServicesModule
+    from src.di.modules.infra_module import InfraModule
 
     global _injector
     if _injector is None:
