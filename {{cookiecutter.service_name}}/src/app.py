@@ -67,7 +67,7 @@ def create_app() -> FastAPI:
 
     app = FastAPI(
         title="{{cookiecutter.service_name|title}} API",
-        description="My Service for DriveStream",
+        description="{{cookiecutter.service_description}}",
         version="0.1.0",
         lifespan=lifespan,
         docs_url="/docs" if settings.is_development else None,

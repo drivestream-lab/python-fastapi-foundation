@@ -47,19 +47,4 @@ class InfraModule(Module):
 
         binder.bind(EmqxPublishService, scope=singleton)
 {%- endif %}
-{%- if cookiecutter.parichay_client == "yes" %}
-        from src.infra_services.parichay_client import ParichayClient
-
-        binder.bind(ParichayClient, scope=singleton)
-{%- endif %}
-{%- if cookiecutter.abhilekh_client == "yes" %}
-        from src.infra_services.abhilekh_client import AbhilekhClient
-
-        binder.bind(AbhilekhClient, scope=singleton)
-{%- endif %}
-{%- if cookiecutter.kavach_client == "yes" %}
-        from src.infra_services.kavach_client import KavachClient
-
-        binder.bind(KavachClient, scope=singleton)
-{%- endif %}
         logger.debug("Infrastructure services module configured")

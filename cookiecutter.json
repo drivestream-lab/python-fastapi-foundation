@@ -1,6 +1,6 @@
 {
   "service_name": "my-service",
-  "service_description": "My Service for DriveStream",
+  "service_description": "My API service",
   "default_port": "8000",
   "auth_mode": ["jwt", "allowlist", "mtls", "none"],
   "has_postgres": ["yes", "no"],
@@ -10,8 +10,5 @@
   "has_cratedb": ["no", "yes"],
   "has_emqx": ["no", "yes"],
   "has_telemetry": ["yes", "no"],
-  "has_internal_api": ["no", "yes"],
-  "parichay_client": ["yes", "no"],
-  "abhilekh_client": ["no", "yes"],
-  "kavach_client": ["no", "yes"]
+  "has_internal_api": ["no", "yes"]
 }
