@@ -4,11 +4,15 @@
 - `.cursor/rules/` — python-services-rules submodule (alwaysApply — enforced by CI)
 
 ## Skills (dev bundle — prayog-skills)
-Exposed as `.claude/commands/` slash commands:
-- `/spec-feasibility-review` — on spec handoff PR branch
-- `/spec-implementation-plan` — after spec merged
+Installed under `.agents/skills/` via harness sync (replaced by `launchpad sync-harness-app`):
+- `/spec-draft` — PRD → spec slice for this repo
+- `/initiative-feasibility` — on spec handoff PR branch
+- `/spec-technical-review` — PE decisions + ADRs
+- `/spec-implementation-plan` — wave plan + board seed YAML
 - `/pre-implement` — before each wave
-- `/verify` — after each wave
+- `/loop-spec` — implement → verify → fix per task
+- `/ground-spec` — wave complete; FR validation
+- `/verify` — live CLI/API verification
 
 ## Product spec
 - `docs/specification/product/` — what to build
