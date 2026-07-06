@@ -76,9 +76,6 @@ launchpad verify-harness-app --repo <service-name>
 | `has_emqx` | `no` / `yes` | EMQX REST publish |
 | `has_telemetry` | `yes` / `no` | OpenTelemetry → OTLP |
 | `has_internal_api` | `no` / `yes` | Network-trusted `/internal` router |
-| `parichay_client` | `yes` / `no` | Optional HTTP client stub (rename for your platform) |
-| `abhilekh_client` | `no` / `yes` | Optional registry client stub |
-| `kavach_client` | `no` / `yes` | Optional policy client stub |
 
 `hooks/post_gen_project.py` removes unselected integration modules automatically.
 

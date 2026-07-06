@@ -34,15 +34,6 @@ def reset_settings() -> None:
         {%- if cookiecutter.has_telemetry == "yes" %}
         "TelemetrySettings",
         {%- endif %}
-        {%- if cookiecutter.parichay_client == "yes" %}
-        "ParichaySettings",
-        {%- endif %}
-        {%- if cookiecutter.abhilekh_client == "yes" %}
-        "AbhilekhSettings",
-        {%- endif %}
-        {%- if cookiecutter.kavach_client == "yes" %}
-        "KavachSettings",
-        {%- endif %}
     ):
         BaseSettings._instances.pop(name, None)
 

@@ -26,15 +26,6 @@ from src.infra_services.cratedb_service import CrateDBService
 {%- if cookiecutter.has_emqx == "yes" %}
 from src.infra_services.emqx_publish_service import EmqxPublishService
 {%- endif %}
-{%- if cookiecutter.parichay_client == "yes" %}
-from src.infra_services.parichay_client import ParichayClient
-{%- endif %}
-{%- if cookiecutter.abhilekh_client == "yes" %}
-from src.infra_services.abhilekh_client import AbhilekhClient
-{%- endif %}
-{%- if cookiecutter.kavach_client == "yes" %}
-from src.infra_services.kavach_client import KavachClient
-{%- endif %}
 
 T = TypeVar("T")
 _injector: Optional[Injector] = None
@@ -62,15 +53,6 @@ _INFRA_SERVICE_TYPES: tuple[type, ...] = (
 {%- endif %}
 {%- if cookiecutter.has_emqx == "yes" %}
     EmqxPublishService,
-{%- endif %}
-{%- if cookiecutter.parichay_client == "yes" %}
-    ParichayClient,
-{%- endif %}
-{%- if cookiecutter.abhilekh_client == "yes" %}
-    AbhilekhClient,
-{%- endif %}
-{%- if cookiecutter.kavach_client == "yes" %}
-    KavachClient,
 {%- endif %}
 )
 
