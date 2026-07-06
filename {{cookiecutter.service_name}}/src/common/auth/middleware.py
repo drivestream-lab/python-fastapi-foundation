@@ -1,4 +1,4 @@
-"""JWT verification middleware (RS256, Parichay-issued tokens)."""
+"""JWT verification middleware (RS256, platform identity issuer)."""
 
 from typing import Callable, Optional
 from uuid import UUID
