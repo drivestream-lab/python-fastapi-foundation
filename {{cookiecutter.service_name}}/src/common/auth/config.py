@@ -6,7 +6,7 @@ from typing import List
 
 @dataclass
 class AuthConfig:
-    """RS256 JWT verification config (Parichay-issued tokens)."""
+    """RS256 JWT verification config (platform identity issuer)."""
 
     issuer: str
     audience: str
