@@ -16,9 +16,6 @@ HAS_CRATEDB    = "{{cookiecutter.has_cratedb}}" == "yes"
 HAS_EMQX       = "{{cookiecutter.has_emqx}}" == "yes"
 HAS_TELEMETRY  = "{{cookiecutter.has_telemetry}}" == "yes"
 HAS_INTERNAL   = "{{cookiecutter.has_internal_api}}" == "yes"
-PARICHAY       = "{{cookiecutter.parichay_client}}" == "yes"
-ABHILEKH       = "{{cookiecutter.abhilekh_client}}" == "yes"
-KAVACH         = "{{cookiecutter.kavach_client}}" == "yes"
 
 
 def rm(path: str) -> None:
@@ -77,21 +74,6 @@ if not HAS_TELEMETRY:
 
 if not HAS_INTERNAL:
     rm("src/api/internal")
-
-if not PARICHAY:
-    rm("src/configs/parichay_settings.py")
-    rm("src/infra_services/parichay_client.py")
-    rm("src/models/parichay_models.py")
-
-if not ABHILEKH:
-    rm("src/configs/abhilekh_settings.py")
-    rm("src/infra_services/abhilekh_client.py")
-    rm("src/models/abhilekh_models.py")
-
-if not KAVACH:
-    rm("src/configs/kavach_settings.py")
-    rm("src/infra_services/kavach_client.py")
-
 
 def format_python() -> None:
     """Normalize jinja-rendered whitespace so ``make check`` passes without ``make format``."""

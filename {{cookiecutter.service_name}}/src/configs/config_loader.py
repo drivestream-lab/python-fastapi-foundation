@@ -22,15 +22,6 @@ from src.configs.jwt_settings import JWTSettings
 {%- if cookiecutter.has_telemetry == "yes" %}
 from src.configs.telemetry_settings import TelemetrySettings
 {%- endif %}
-{%- if cookiecutter.parichay_client == "yes" %}
-from src.configs.parichay_settings import ParichaySettings
-{%- endif %}
-{%- if cookiecutter.abhilekh_client == "yes" %}
-from src.configs.abhilekh_settings import AbhilekhSettings
-{%- endif %}
-{%- if cookiecutter.kavach_client == "yes" %}
-from src.configs.kavach_settings import KavachSettings
-{%- endif %}
 
 
 def load_all_settings():
@@ -56,13 +47,4 @@ def load_all_settings():
     {%- endif %}
     {%- if cookiecutter.has_telemetry == "yes" %}
     TelemetrySettings.get_instance()
-    {%- endif %}
-    {%- if cookiecutter.parichay_client == "yes" %}
-    ParichaySettings.get_instance()
-    {%- endif %}
-    {%- if cookiecutter.abhilekh_client == "yes" %}
-    AbhilekhSettings.get_instance()
-    {%- endif %}
-    {%- if cookiecutter.kavach_client == "yes" %}
-    KavachSettings.get_instance()
     {%- endif %}
