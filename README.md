@@ -1,42 +1,61 @@
 # python-fastapi-foundation
 
-Canonical cookiecutter template for DriveStream Python FastAPI microservices.
+**Production-ready cookiecutter for Python FastAPI microservices** — aligned with [python-services-rules](https://github.com/drivestream-lab/python-services-rules) and [Launchpad](https://github.com/drivestream-lab/launchpad) harness profiles.
 
-Every service generated from this template starts with the full settled foundation:
-layered architecture, DI, auth, structured logging, OTel, Postgres/Redis/Kafka/EMQX
-options, Makefile quality gates, Dockerfile, harness pins, and spec-driven test layout.
+Every generated service starts with settled patterns: layered `src/`, dependency injection, auth middleware, structured logging, optional Postgres/Redis/Kafka integrations, Makefile quality gates, spec-driven test layout, and harness pin placeholders.
+
+| | |
+|---|---|
+| **License** | [MIT](LICENSE) |
+| **Template engine** | [Cookiecutter](https://cookiecutter.readthedocs.io/) |
+| **Harness profile** | `python-backend` |
+| **Default remote** | `gh:drivestream-lab/python-fastapi-foundation` |
+| **Pairs with** | [python-services-rules](https://github.com/drivestream-lab/python-services-rules) · [prayog-skills](https://github.com/drivestream-lab/prayog-skills) |
 
 ---
 
-## Usage
+## Role in the stack
 
-### Generate a new service
+```text
+python-fastapi-foundation (this repo)     python-services-rules
+         │  cookiecutter once                      │  submodule forever
+         ▼                                         ▼
+    <service-repo>/                          .cursor/rules/*.mdc
+         │
+         └── launchpad sync-harness-app ──► prayog-skills + .harness-pin.yaml
+```
+
+**SSOT for scaffold code is this repository** — not individual app repos. Fix template bugs here; overlay into apps with `launchpad scaffold-app --apply --force`.
+
+---
+
+## Quick start
 
 ```bash
-# One-time: install cookiecutter
 pip install cookiecutter
 
-# Generate (prompts for options)
+# From GitHub
 cookiecutter gh:drivestream-lab/python-fastapi-foundation
 
-# Or from a local clone
+# From a local clone
 cookiecutter /path/to/python-fastapi-foundation
 ```
 
-### After generation
+After generation:
 
 ```bash
 cd <service-name>
-cp .env.example .env          # fill in secrets + service config
-make setup                    # creates .venv, installs deps, pre-commit hooks
-make check                    # should be green immediately
-make test                     # health unit test passes on day 1
+cp .env.example .env
+make setup          # venv, deps, pre-commit
+make check          # should pass on day one
+make test           # health unit test included
 ```
 
-Then wire the new repo into the platform:
+Wire harness (from tenant meta workspace):
 
 ```bash
-launchpad sync-harness --repo <service-name> --apply
+launchpad sync-harness-app --repo <service-name> --apply
+launchpad verify-harness-app --repo <service-name>
 ```
 
 ---
@@ -45,186 +64,133 @@ launchpad sync-harness --repo <service-name> --apply
 
 | Option | Choices | Description |
 |--------|---------|-------------|
-| `service_name` | string | Kebab-case service name (e.g. `suchana`) |
+| `service_name` | string | Kebab-case name (e.g. `notifications-api`) |
 | `service_description` | string | One-line description |
 | `default_port` | number | Uvicorn default port |
 | `auth_mode` | `jwt` / `allowlist` / `mtls` / `none` | Inbound auth strategy |
-| `has_postgres` | `yes` / `no` | PostgreSQL via SQLAlchemy async + Alembic |
+| `has_postgres` | `yes` / `no` | SQLAlchemy async + Alembic |
 | `has_redis` | `yes` / `no` | Redis connection manager |
 | `has_kafka` | `no` / `yes` | Kafka consumer (aiokafka) |
-| `has_s3` | `no` / `yes` | S3/CloudFront (boto3) |
+| `has_s3` | `no` / `yes` | S3 / CloudFront (boto3) |
 | `has_cratedb` | `no` / `yes` | CrateDB client |
-| `has_emqx` | `no` / `yes` | EMQX REST publish service |
-| `has_telemetry` | `yes` / `no` | OpenTelemetry (OTLP HTTP → Alloy) |
+| `has_emqx` | `no` / `yes` | EMQX REST publish |
+| `has_telemetry` | `yes` / `no` | OpenTelemetry → OTLP |
 | `has_internal_api` | `no` / `yes` | Network-trusted `/internal` router |
-| `parichay_client` | `yes` / `no` | HTTP client for Parichay (auth/JWT) |
-| `abhilekh_client` | `no` / `yes` | HTTP client for Abhilekh (device registry) |
-| `kavach_client` | `no` / `yes` | HTTP client for Kavach |
+| `parichay_client` | `yes` / `no` | Optional HTTP client stub (rename for your platform) |
+| `abhilekh_client` | `no` / `yes` | Optional registry client stub |
+| `kavach_client` | `no` / `yes` | Optional policy client stub |
 
-The post-generation hook (`hooks/post_gen_project.py`) automatically removes all
-infra service files, settings modules, and models that were not selected.
-
----
-
-## What you get
-
-### Folder structure (all options enabled)
-
-```
-<service-name>/
-├── src/
-│   ├── main.py                     # uvicorn entry point (factory pattern)
-│   ├── app.py                      # FastAPI lifespan + DI + middleware
-│   ├── api/
-│   │   ├── health/health_router.py # GET /health
-│   │   ├── internal/               # network-trust /internal (optional)
-│   │   └── v1/                     # JWT-authenticated /api/v1 routes
-│   ├── business_services/
-│   │   └── base_business_service.py
-│   ├── infra_services/
-│   │   ├── base_infra_service.py
-│   │   ├── postgres_service.py
-│   │   ├── redis_service.py
-│   │   ├── telemetry_service.py
-│   │   ├── kafka_consumer_service.py
-│   │   ├── emqx_publish_service.py
-│   │   ├── cratedb_service.py
-│   │   ├── s3_service.py
-│   │   ├── parichay_client.py
-│   │   ├── abhilekh_client.py
-│   │   └── kavach_client.py
-│   ├── database/
-│   │   ├── postgres/{connection_manager,schema/,repository/}
-│   │   └── redis/connection.py
-│   ├── di/
-│   │   ├── dependency_container.py
-│   │   └── modules/{infra,business_services}_module.py
-│   ├── configs/
-│   │   ├── base_settings.py        # PREFIX + get_instance() singleton pattern
-│   │   ├── app_settings.py
-│   │   └── *_settings.py           # one per integration
-│   ├── common/auth/
-│   │   ├── config.py
-│   │   └── middleware.py           # JWT Bearer → AuthContext
-│   ├── middleware/
-│   │   ├── allowlist_middleware.py
-│   │   └── mtls_middleware.py
-│   ├── logging/
-│   │   ├── logging_setup.py        # Loguru JSON/text, service name
-│   │   └── logging_context.py      # log_scope + CorrelationId
-│   ├── exceptions/app_exceptions.py
-│   ├── models/
-│   │   ├── base_models.py          # BaseUUIDModel, BaseTimestampModel
-│   │   ├── health_models.py
-│   │   ├── parichay_models.py
-│   │   └── abhilekh_models.py
-│   └── utils/
-│       ├── correlation_id.py       # CorrelationIdMiddleware
-│       └── api_helpers.py
-├── tests/
-│   ├── unit/api/test_health.py     # Day-1 health test
-│   ├── verify/                     # live E2E scripts (not pytest)
-│   └── _helpers/verify_preflight.py
-├── postgres_migrations/            # Alembic (when has_postgres=yes)
-├── docker/
-│   └── docker-compose.yml          # local dev infra (Postgres, Redis, etc.)
-├── scripts/
-│   ├── setup_dev.sh
-│   ├── create_postgres_migration.sh
-│   └── run_postgres_migration.sh
-├── Makefile
-├── Dockerfile
-├── pyproject.toml
-├── AGENTS.md
-├── .harness-pin.yaml
-└── .gitmodules                     # rules submodule placeholder
-```
-
-### Settled patterns
-
-| Pattern | Implementation |
-|---------|---------------|
-| **Logging** | `from src.logging import get_logger` · Loguru JSON/text · `log_scope` context manager |
-| **Config** | `class FooSettings(BaseSettings): PREFIX = "FOO"` → `FooSettings.get_instance()` |
-| **DI** | `injector` modules · `configure_container()` / `initialize_all_services()` / `close_all_services()` |
-| **Layers** | import-linter: `api → business_services → repository` (no upward imports) |
-| **Auth** | `AuthMiddleware` (JWT Bearer) + `AuthContext` on `request.state.auth` |
-| **Errors** | `BaseAppException` → `{status, error, metadata: {correlation_id}}` |
-| **Correlation** | `CorrelationIdMiddleware` sets `X-Correlation-ID` on every request |
-| **Tests** | `tests/unit/` (pytest, mocked) · `tests/verify/` (live, not in CI) |
-| **Quality gate** | `make check` = read-only (black --check + ruff + pyright + lint-imports) |
-| **Harness** | `python-services-rules` submodule + `prayog-skills` via `.harness-pin.yaml` |
+`hooks/post_gen_project.py` removes unselected integration modules automatically.
 
 ---
 
-## Development guidelines
-
-Follow the codebase patterns established across parichay, abhilekh, and airforge:
-
-- **Add a business service:** create `src/business_services/<domain>_service.py` extending `BaseBusinessService`; register in `di/modules/business_services_module.py`
-- **Add a repository:** create `src/database/postgres/repository/<domain>_repository.py` extending `BasePostgresRepository`; register in `di/modules/repository_module.py`  
-- **Add an API route:** create `src/api/v1/<domain>_routes.py`; register in `src/api/v1/__init__.py`
-- **Add an infra client:** create `src/infra_services/<name>_client.py` extending `BaseInfraService`; register in `di/modules/infra_module.py`
-
-Every PR should update `docs/specification/as-built/implementation-status.md` together with the code.
-
----
-
-## Verify the template (fix scaffold first, then launchpad)
-
-**SSOT for foundation code is this repo** — not individual app repos. Suchana (or the next greenfield module) is the **canary** to prove the template works end-to-end.
+## Generated structure (all options enabled)
 
 ```text
-python-fastapi-foundation   ← fix bugs here (pyproject, auth __init__, logging, …)
-         │
-         ▼
-launchpad scaffold --repo suchana --apply --force   ← overlay into git clone (preserves .git)
-         │
-         ▼
-make setup && make format && make check && make test
-launchpad sync-harness --repo suchana --apply
-         │
-         ▼
-green on canary → publish foundation / merge scaffold PR
+<service-name>/
+├── src/
+│   ├── main.py / app.py           # factory + lifespan
+│   ├── api/health/, api/v1/, api/internal/
+│   ├── business_services/
+│   ├── infra_services/            # postgres, redis, kafka, …
+│   ├── database/
+│   ├── di/                        # injector modules
+│   ├── configs/                   # PREFIX + get_instance() settings
+│   ├── common/auth/
+│   ├── logging/                   # loguru + correlation
+│   └── utils/
+├── tests/unit/                    # pytest
+├── tests/verify/                  # live scripts (not CI)
+├── postgres_migrations/           # when has_postgres=yes
+├── docker/docker-compose.yml
+├── Makefile                       # check = black + ruff + pyright + import-linter
+├── Dockerfile
+├── AGENTS.md
+├── .harness-pin.yaml
+└── .gitmodules                    # → drivestream-lab/python-services-rules
 ```
-
-**Do not** patch Suchana-only fixes that belong in the template — they will be lost on the next overlay and will break tarang/setu/etc.
-
-**Recommended canary loop:**
-
-```bash
-# 1. Edit python-fastapi-foundation (commit on foundation repo)
-
-# 2. Overlay into existing suchana checkout (develop or chore branch)
-cd drivestream-meta
-launchpad scaffold --repo suchana --apply --force
-
-# 3. Day-1 gate
-cd ../suchana
-make setup && make format && make check && make test
-
-# 4. Harness envelope (separate commit on app repo)
-cd ../drivestream-meta
-launchpad sync-harness --repo suchana --apply
-launchpad verify-harness --repo suchana
-```
-
-App-specific code (W0 adapters, iac-local, domain routes) stays **only in the app repo** — never in the foundation template.
 
 ---
 
-## Harness sync (after repo creation)
+## Settled patterns
+
+| Concern | Implementation |
+|---------|----------------|
+| **Logging** | `from src.logging import get_logger` · loguru JSON/text · `log_scope` |
+| **Config** | `class FooSettings(BaseSettings): PREFIX = "FOO"` → `get_instance()` |
+| **DI** | `injector` · `configure_container()` / `initialize_all_services()` |
+| **Layers** | import-linter: `api → business_services → repository` |
+| **Auth** | JWT Bearer → `AuthContext` on `request.state.auth` |
+| **Errors** | `BaseAppException` → structured JSON + correlation id |
+| **Tests** | `tests/unit/` (mocked) · `tests/verify/` (live, manual) |
+| **Quality** | `make check` read-only before merge |
+| **Harness** | Rules submodule + prayog-skills via pin file |
+
+Details: [python-services-rules](https://github.com/drivestream-lab/python-services-rules).
+
+---
+
+## Extending a generated service
+
+| Task | Where |
+|------|--------|
+| Business logic | `src/business_services/<domain>_service.py` + DI module |
+| Persistence | `src/database/postgres/repository/` + repository module |
+| HTTP API | `src/api/v1/<domain>_routes.py` |
+| External client | `src/infra_services/<name>_client.py` + infra module |
+
+Update `docs/specification/as-built/implementation-status.md` in the **same PR** as behavior changes.
+
+---
+
+## Launchpad overlay workflow
+
+Use a **canary app repo** to validate template changes before tagging a foundation release:
 
 ```bash
-# From drivestream-meta
-launchpad sync-harness --repo <service-name> --apply
-launchpad verify-harness --repo <service-name>
+# 1. Fix template in python-fastapi-foundation (PR → develop → main)
+
+# 2. Overlay into existing app checkout
+cd <tenant-meta>
+launchpad scaffold-app --repo <service> --apply --force
+
+# 3. Day-one gate in app repo
+cd ../<service>
+make setup && make check && make test
+
+# 4. Harness envelope
+cd ../<tenant-meta>
+launchpad sync-harness-app --repo <service> --apply
+launchpad verify-harness-app --repo <service>
 ```
 
-See [playbook/harness-pins.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/harness-pins.md).
+Do **not** patch scaffold-only fixes in app repos — they are lost on the next overlay.
+
+---
+
+## Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `LAUNCHPAD_PYTHON_FOUNDATION` | Override local template path for `launchpad scaffold-app` |
+
+Default: `gh:drivestream-lab/python-fastapi-foundation`
+
+---
+
+## Related repositories
+
+| Repo | Role |
+|------|------|
+| [python-services-rules](https://github.com/drivestream-lab/python-services-rules) | Coding constitution (`.mdc`) |
+| [prayog-skills](https://github.com/drivestream-lab/prayog-skills) | SDD agent skills |
+| [launchpad](https://github.com/drivestream-lab/launchpad) | Scaffold, harness sync, playbook |
+| [tenant-meta-foundation](https://github.com/drivestream-lab/tenant-meta-foundation) | Tenant meta layout |
+
+Harness pins: [playbook/harness-pins.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/harness-pins.md)
 
 ---
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
