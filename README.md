@@ -17,7 +17,7 @@ options, Makefile quality gates, Dockerfile, harness pins, and spec-driven test 
 pip install cookiecutter
 
 # Generate (prompts for options)
-cookiecutter gh:autrio10x/python-fastapi-foundation
+cookiecutter gh:drivestream-lab/python-fastapi-foundation
 
 # Or from a local clone
 cookiecutter /path/to/python-fastapi-foundation
@@ -221,7 +221,7 @@ launchpad sync-harness --repo <service-name> --apply
 launchpad verify-harness --repo <service-name>
 ```
 
-See [playbook/harness-pins.md](https://github.com/autrio10x/drivestream-meta/blob/develop/playbook/harness-pins.md).
+See [playbook/harness-pins.md](https://github.com/drivestream-lab/launchpad/blob/main/playbook/harness-pins.md).
 
 ---
 
