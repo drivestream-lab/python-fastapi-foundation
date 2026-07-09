@@ -3,6 +3,13 @@ set -euo pipefail
 
 echo "Setting up {{ cookiecutter.service_name }} development environment..."
 
+if [[ -n "${CONDA_DEFAULT_ENV:-}" || -n "${CONDA_PREFIX:-}" ]]; then
+  echo "[ERROR] Conda environment is active (${CONDA_DEFAULT_ENV:-$CONDA_PREFIX})."
+  echo "        Deactivate conda before setup — this scaffold uses Python 3.12 + project .venv only."
+  echo "        Run: conda deactivate   (repeat until the prompt shows no conda env)"
+  exit 1
+fi
+
 if ! command -v python3.12 >/dev/null 2>&1; then
   echo "[ERROR] python3.12 is required. Install Python 3.12 and retry."
   echo "        Check: python3.12 --version"
@@ -25,9 +32,24 @@ fi
 
 echo "[INFO] .venv Python: $(.venv/bin/python --version)"
 
+# Prevent Poetry from reusing an active shell virtualenv (e.g. leftover VIRTUAL_ENV).
+unset VIRTUAL_ENV
+
 .venv/bin/pip install --upgrade pip poetry
-POETRY_VIRTUALENVS_IN_PROJECT=1 .venv/bin/poetry env use .venv/bin/python
-.venv/bin/poetry install --with dev
+POETRY_VIRTUALENVS_IN_PROJECT=1 POETRY_VIRTUALENVS_CREATE=false \
+  .venv/bin/poetry env use .venv/bin/python
+POETRY_VIRTUALENVS_IN_PROJECT=1 POETRY_VIRTUALENVS_CREATE=false \
+  .venv/bin/poetry install --with dev
+
+POETRY_ENV="$(cd .venv && pwd)"
+RESOLVED_ENV="$(POETRY_VIRTUALENVS_IN_PROJECT=1 .venv/bin/poetry env info -p)"
+if [[ "$RESOLVED_ENV" != "$POETRY_ENV" ]]; then
+  echo "[ERROR] Poetry is not using project .venv."
+  echo "        Expected: $POETRY_ENV"
+  echo "        Got:      $RESOLVED_ENV"
+  echo "        Deactivate conda, remove .venv, and run make setup again."
+  exit 1
+fi
 
 for tool in black ruff pyright pytest; do
   if [ ! -x ".venv/bin/$tool" ]; then

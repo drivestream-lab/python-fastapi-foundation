@@ -4,6 +4,23 @@ All notable changes to `python-fastapi-foundation` are documented here.
 
 ---
 
+## v0.3.2
+
+### Summary
+
+Fail fast when conda is active during `make setup` — prevents Poetry installing into the wrong environment.
+
+### Changes
+
+- **`scripts/setup_dev.sh`** — exit with clear message if `CONDA_DEFAULT_ENV` / `CONDA_PREFIX` is set; unset `VIRTUAL_ENV` before Poetry; verify Poetry resolves to project `.venv` after install
+
+### Migration guide
+
+- Regenerate from v0.3.2+ or copy updated `setup_dev.sh` into existing scaffolds
+- No runtime API changes
+
+---
+
 ## v0.3.1
 
 ### Summary
