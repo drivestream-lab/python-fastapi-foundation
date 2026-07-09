@@ -1,8 +1,10 @@
-"""Application settings for {{cookiecutter.service_name}}."""
+"""Application-wide settings for {{ cookiecutter.service_name }}."""
 
 from enum import Enum
 from typing import ClassVar
+
 from pydantic import Field, field_validator
+
 from src.configs.base_settings import BaseSettings
 
 
@@ -14,31 +16,35 @@ class Environment(str, Enum):
 
 
 class AppSettings(BaseSettings):
+    """Application configuration settings."""
+
     PREFIX: ClassVar[str] = "APP"
 
     environment: Environment = Field(default=Environment.DEVELOPMENT)
     host: str = Field(default="0.0.0.0")
-    port: int = Field(default={{cookiecutter.default_port}})
+    port: int = Field(default={{ cookiecutter.default_port }})
+    api_prefix: str = Field(default="/api")
     log_level: str = Field(default="INFO")
-    log_format: str = Field(default="text", description="'text' for dev, 'json' for prod")
+    log_format: str = Field(default="text", description="'json' in production, 'text' locally")
     log_to_console: bool = Field(default=True)
     log_dir: str = Field(default="logs")
+
+    @field_validator("log_format")
+    @classmethod
+    def validate_log_format(cls, v: str) -> str:
+        v_lower = v.lower()
+        if v_lower not in ("text", "json"):
+            raise ValueError("log_format must be 'text' or 'json'")
+        return v_lower
 
     @field_validator("log_level")
     @classmethod
     def validate_log_level(cls, v: str) -> str:
         valid = ["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        u = v.upper()
-        if u not in valid:
-            raise ValueError(f"log_level must be one of {valid}")
-        return u
-
-    @field_validator("port")
-    @classmethod
-    def validate_port(cls, v: int) -> int:
-        if not 1 <= v <= 65535:
-            raise ValueError("port must be between 1 and 65535")
-        return v
+        v_upper = v.upper()
+        if v_upper not in valid:
+            raise ValueError(f"Log level must be one of {valid}")
+        return v_upper
 
     @property
     def is_development(self) -> bool:

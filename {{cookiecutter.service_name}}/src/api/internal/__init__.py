@@ -1,5 +1,5 @@
-"""Internal router for {{cookiecutter.service_name}} (service-to-service, not public)."""
+"""Internal API package."""
 
-from fastapi import APIRouter
+from src.api.internal.router import router as internal_router
 
-internal_router = APIRouter(prefix="/internal", tags=["Internal"])
+__all__ = ["internal_router"]

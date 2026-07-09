@@ -1,23 +1,24 @@
-"""Base configuration settings for {{cookiecutter.service_name}}."""
+"""Base configuration settings for Parichay."""
 
+from typing import ClassVar, Dict, Type, TypeVar, cast
 from abc import ABC
-from typing import Any, ClassVar, Dict, Type, TypeVar, cast
 
 from pydantic_settings import BaseSettings as PydanticBaseSettings, SettingsConfigDict
 
 from src.logging import get_logger
 
 logger = get_logger()
+
 T = TypeVar("T", bound="BaseSettings")
 
 
 class BaseSettings(PydanticBaseSettings, ABC):
-    """Base class for all settings — singleton + env-prefix pattern."""
+    """Base class for all settings with automatic prefix handling."""
 
     PREFIX: ClassVar[str] = ""
     _instances: ClassVar[Dict[str, "BaseSettings"]] = {}
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
+    def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         prefix = getattr(cls, "PREFIX", "")
         if not prefix:
@@ -34,6 +35,7 @@ class BaseSettings(PydanticBaseSettings, ABC):
 
     @classmethod
     def get_instance(cls: Type[T]) -> T:
+        """Get the singleton instance of settings."""
         class_name = cls.__name__
         if class_name not in cls._instances:
             cls._instances[class_name] = cls()
