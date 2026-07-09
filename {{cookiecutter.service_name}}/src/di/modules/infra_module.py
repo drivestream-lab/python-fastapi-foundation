@@ -1,50 +1,25 @@
-"""Infra DI module for {{cookiecutter.service_name}} — bindings driven by scaffold flags."""
+"""Infrastructure services module for dependency injection."""
 
-from injector import Binder, Module, singleton
+from injector import Module, singleton
 
+from src.database.postgres.connection_manager import PostgresConnectionManager
+from src.database.redis.connection_manager import RedisConnectionManager
+from src.infra_services.postgres_service import PostgresService
+from src.infra_services.redis_service import RedisService
+from src.infra_services.telemetry_service import TelemetryService
 from src.logging import get_logger
 
 logger = get_logger()
 
 
 class InfraModule(Module):
-    """Register infrastructure services enabled at scaffold time."""
+    """Register core infrastructure services."""
 
-    def configure(self, binder: Binder) -> None:
+    def configure(self, binder) -> None:
         logger.info("Configuring infrastructure services module")
-{%- if cookiecutter.has_telemetry == "yes" %}
-        from src.infra_services.telemetry_service import TelemetryService
-
+        binder.bind(PostgresConnectionManager, to=PostgresConnectionManager, scope=singleton)
+        binder.bind(RedisConnectionManager, to=RedisConnectionManager, scope=singleton)
+        binder.bind(PostgresService, to=PostgresService, scope=singleton)
+        binder.bind(RedisService, to=RedisService, scope=singleton)
         binder.bind(TelemetryService, scope=singleton)
-{%- endif %}
-{%- if cookiecutter.has_postgres == "yes" %}
-        from src.infra_services.postgres_service import PostgresService
-
-        binder.bind(PostgresService, scope=singleton)
-{%- endif %}
-{%- if cookiecutter.has_redis == "yes" %}
-        from src.infra_services.redis_service import RedisService
-
-        binder.bind(RedisService, scope=singleton)
-{%- endif %}
-{%- if cookiecutter.has_kafka == "yes" %}
-        from src.infra_services.kafka_consumer_service import KafkaConsumerService
-
-        binder.bind(KafkaConsumerService, scope=singleton)
-{%- endif %}
-{%- if cookiecutter.has_s3 == "yes" %}
-        from src.infra_services.s3_service import S3Service
-
-        binder.bind(S3Service, scope=singleton)
-{%- endif %}
-{%- if cookiecutter.has_cratedb == "yes" %}
-        from src.infra_services.cratedb_service import CrateDBService
-
-        binder.bind(CrateDBService, scope=singleton)
-{%- endif %}
-{%- if cookiecutter.has_emqx == "yes" %}
-        from src.infra_services.emqx_publish_service import EmqxPublishService
-
-        binder.bind(EmqxPublishService, scope=singleton)
-{%- endif %}
         logger.debug("Infrastructure services module configured")

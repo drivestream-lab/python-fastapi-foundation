@@ -1,4 +1,0 @@
-[submodule ".cursor/rules"]
-    path = .cursor/rules
-    url = https://github.com/drivestream-lab/python-services-rules.git
-    branch = main

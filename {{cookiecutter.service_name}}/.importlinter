@@ -9,3 +9,4 @@ layers =
     src.api
     src.business_services
     src.database.postgres.repository
+    src.database.postgres.schema

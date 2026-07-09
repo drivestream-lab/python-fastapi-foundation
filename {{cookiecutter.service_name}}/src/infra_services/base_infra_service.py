@@ -1,26 +1,26 @@
-"""Base infrastructure service for {{cookiecutter.service_name}}."""
+"""Base infrastructure service class for Parichay."""
 
 import abc
+
 from src.logging import get_logger
 
 logger = get_logger()
 
 
 class BaseInfraService(abc.ABC):
-    """Abstract base for all infrastructure services.
-
-    Subclasses must use @inject on __init__ and be registered in InfraModule
-    via binder.bind(ServiceClass, scope=singleton).
-    """
+    """Abstract base class for all infrastructure services."""
 
     @abc.abstractmethod
     async def initialize(self) -> None:
-        """Initialize the service and open external resources."""
+        """Initialize the service."""
+        pass
 
     @abc.abstractmethod
     async def close(self) -> None:
         """Close the service and release resources."""
+        pass
 
     @abc.abstractmethod
     async def health_check(self) -> bool:
-        """Return True if the service is reachable and healthy."""
+        """Check if the service is healthy."""
+        pass

@@ -1,13 +1,12 @@
 [tool.poetry]
-name = "{{cookiecutter.service_name}}"
+name = "{{ cookiecutter.service_name }}"
 version = "0.1.0"
-description = "{{cookiecutter.service_description}}"
+description = "{{ cookiecutter.service_description }}"
 authors = ["Engineering Team"]
 package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
-# Core — always present
 fastapi = "^0.115.12"
 uvicorn = {extras = ["standard"], version = "^0.28.0"}
 pydantic = "^2.11.0"
@@ -16,47 +15,19 @@ python-dotenv = "^1.1.0"
 loguru = "^0.7.3"
 injector = "^0.22.0"
 httpx = "^0.28.1"
-{% if cookiecutter.has_postgres == "yes" %}
-# PostgreSQL
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.27"}
 asyncpg = "^0.29.0"
 alembic = "^1.15.2"
 greenlet = "^3.1.1"
 psycopg2-binary = "^2.9.10"
-{% endif %}
-{% if cookiecutter.has_redis == "yes" %}
-# Redis
 redis = "^5.2.0"
-{% endif %}
-{% if cookiecutter.has_kafka == "yes" %}
-# Kafka
-aiokafka = "^0.11.0"
-{% endif %}
-{% if cookiecutter.has_s3 == "yes" %}
-# S3
-boto3 = "^1.35.0"
-{% endif %}
-{% if cookiecutter.has_cratedb == "yes" %}
-# CrateDB
-sqlalchemy-cratedb = "^0.41.0"
-{% endif %}
-{% if cookiecutter.auth_mode == "jwt" %}
-# JWT
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
-{% endif %}
-{% if cookiecutter.has_telemetry == "yes" %}
-# OpenTelemetry
 opentelemetry-sdk = "^1.42.0"
 opentelemetry-exporter-otlp-proto-http = "^1.42.0"
 opentelemetry-instrumentation-fastapi = "^0.63b0"
 opentelemetry-instrumentation-httpx = "^0.63b0"
-{% if cookiecutter.has_postgres == "yes" %}
 opentelemetry-instrumentation-sqlalchemy = "^0.63b0"
-{% endif %}
-{% if cookiecutter.has_redis == "yes" %}
 opentelemetry-instrumentation-redis = "^0.63b0"
-{% endif %}
-{% endif %}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"

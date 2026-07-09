@@ -1,4 +1,4 @@
-"""JWT verification middleware (RS256, Parichay-issued tokens)."""
+"""JWT verification middleware. Validates Bearer token and sets request.state.auth."""
 
 from typing import Callable, Optional
 from uuid import UUID
@@ -15,26 +15,29 @@ _OWNER_ROLES = frozenset({"owner", "tenant_owner"})
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
-    """Validates Authorization Bearer JWT (RS256) and sets request.state.auth."""
+    """Validates Authorization Bearer JWT (HS256 or RS256) and sets request.state.auth."""
 
-    def __init__(self, app, config: AuthConfig) -> None:
+    def __init__(
+        self,
+        app,
+        config: AuthConfig,
+    ) -> None:
         super().__init__(app)
         self._config = config
-        if config.algorithm.upper() != "RS256":
-            raise ValueError("Only RS256 JWT verification is supported")
-        if not config.public_key_path:
-            raise ValueError("JWT_PUBLIC_KEY_PATH is required for RS256 verification")
-        with open(config.public_key_path) as key_file:
-            self._verify_key_cached = key_file.read()
+        if config.algorithm.upper() == "RS256" and config.public_key_path:
+            with open(config.public_key_path) as f:
+                self._verify_key_cached = f.read()
+        else:
+            self._verify_key_cached = config.secret_key
 
     def _is_public_path(self, path: str) -> bool:
         """Check if path is in public_paths (exact or prefix)."""
-        for public_path in self._config.public_paths:
-            if path == public_path or path.rstrip("/") == public_path.rstrip("/"):
+        for p in self._config.public_paths:
+            if path == p or path.rstrip("/") == p.rstrip("/"):
                 return True
-            if public_path.endswith("/") and path.startswith(public_path):
+            if p.endswith("/") and path.startswith(p):
                 return True
-            if not public_path.endswith("/") and path.startswith(public_path + "/"):
+            if not p.endswith("/") and path.startswith(p + "/"):
                 return True
         return False
 
@@ -76,11 +79,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
             payload = jwt.decode(
                 token,
                 self._verify_key_cached,
-                algorithms=["RS256"],
+                algorithms=[self._config.algorithm],
                 audience=self._config.audience,
                 issuer=self._config.issuer,
             )
-        except JWTError as exc:
+        except JWTError as e:
             return JSONResponse(
                 status_code=401,
                 content={
@@ -88,7 +91,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     "error": {
                         "code": "UNAUTHORIZED",
                         "message": "Invalid or expired token",
-                        "details": str(exc),
+                        "details": str(e),
                     },
                 },
             )

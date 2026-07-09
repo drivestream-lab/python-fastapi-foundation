@@ -1,102 +1,76 @@
-"""Dependency injection container for {{cookiecutter.service_name}}."""
+"""Dependency injection container for {{ cookiecutter.service_name }}."""
 
-from typing import Optional, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 from injector import Injector
 
-from src.logging import get_logger
-{%- if cookiecutter.has_telemetry == "yes" %}
-from src.infra_services.telemetry_service import TelemetryService
-{%- endif %}
-{%- if cookiecutter.has_postgres == "yes" %}
+from src.configs.app_settings import AppSettings
 from src.infra_services.postgres_service import PostgresService
-{%- endif %}
-{%- if cookiecutter.has_redis == "yes" %}
 from src.infra_services.redis_service import RedisService
-{%- endif %}
-{%- if cookiecutter.has_kafka == "yes" %}
-from src.infra_services.kafka_consumer_service import KafkaConsumerService
-{%- endif %}
-{%- if cookiecutter.has_s3 == "yes" %}
-from src.infra_services.s3_service import S3Service
-{%- endif %}
-{%- if cookiecutter.has_cratedb == "yes" %}
-from src.infra_services.cratedb_service import CrateDBService
-{%- endif %}
-{%- if cookiecutter.has_emqx == "yes" %}
-from src.infra_services.emqx_publish_service import EmqxPublishService
-{%- endif %}
+from src.infra_services.telemetry_service import TelemetryService
+from src.logging import get_logger
 
 T = TypeVar("T")
 _injector: Optional[Injector] = None
 logger = get_logger()
 
-# Keep in sync with bindings in src/di/modules/infra_module.py (lifecycle services only).
+# Postgres first — business services depend on session factory from PostgresService.
 _INFRA_SERVICE_TYPES: tuple[type, ...] = (
-{%- if cookiecutter.has_telemetry == "yes" %}
-    TelemetryService,
-{%- endif %}
-{%- if cookiecutter.has_postgres == "yes" %}
     PostgresService,
-{%- endif %}
-{%- if cookiecutter.has_redis == "yes" %}
     RedisService,
-{%- endif %}
-{%- if cookiecutter.has_kafka == "yes" %}
-    KafkaConsumerService,
-{%- endif %}
-{%- if cookiecutter.has_s3 == "yes" %}
-    S3Service,
-{%- endif %}
-{%- if cookiecutter.has_cratedb == "yes" %}
-    CrateDBService,
-{%- endif %}
-{%- if cookiecutter.has_emqx == "yes" %}
-    EmqxPublishService,
-{%- endif %}
+    TelemetryService,
 )
 
-# Keep in sync with bindings in src/di/modules/business_services_module.py.
-_BUSINESS_SERVICE_TYPES: tuple[type, ...] = (
-    # Add business services as feature waves deliver them.
-)
+_BUSINESS_SERVICE_TYPES: tuple[type, ...] = ()
 
 
 def configure_container() -> Injector:
     from src.di.modules.business_services_module import BusinessServicesModule
+    from src.di.modules.config_module import ConfigModule
     from src.di.modules.infra_module import InfraModule
+    from src.di.modules.repository_module import RepositoryModule
 
+    settings = AppSettings.get_instance()
     global _injector
     if _injector is None:
-        logger.info("Configuring DI container")
-        _injector = Injector([InfraModule(), BusinessServicesModule()])
-        logger.info("DI container configured")
+        logger.info("Configuring DI container", environment=str(settings.environment))
+        _injector = Injector(
+            [
+                ConfigModule(),
+                InfraModule(),
+                RepositoryModule(),
+                BusinessServicesModule(),
+            ]
+        )
+        logger.info("DI container configured successfully")
     return _injector
 
 
+async def _close_service(injector: Injector, service_type: Type[Any]) -> None:
+    try:
+        await injector.get(service_type).close()
+    except Exception as e:
+        logger.warning("Error closing service", service_type=service_type.__name__, error=str(e))
+
+
 async def initialize_all_services() -> None:
-    logger.info("Initializing all services")
+    logger.info("Initializing all application services")
     injector = get_container()
-    for svc_type in _INFRA_SERVICE_TYPES:
-        await injector.get(svc_type).initialize()
-    for svc_type in _BUSINESS_SERVICE_TYPES:
-        await injector.get(svc_type).initialize()
-    logger.info("All services initialized")
+    for service_type in _INFRA_SERVICE_TYPES:
+        await injector.get(service_type).initialize()
+    for service_type in _BUSINESS_SERVICE_TYPES:
+        await injector.get(service_type).initialize()
+    logger.info("All application services initialized successfully")
 
 
 async def close_all_services() -> None:
-    logger.info("Closing all services")
+    logger.info("Closing all application services")
     injector = get_container()
-    for svc_type in reversed(_BUSINESS_SERVICE_TYPES):
-        try:
-            await injector.get(svc_type).close()
-        except Exception as e:
-            logger.warning("Error closing service", service=svc_type.__name__, error=str(e))
-    for svc_type in reversed(_INFRA_SERVICE_TYPES):
-        try:
-            await injector.get(svc_type).close()
-        except Exception as e:
-            logger.warning("Error closing service", service=svc_type.__name__, error=str(e))
+    for service_type in reversed(_BUSINESS_SERVICE_TYPES):
+        await _close_service(injector, service_type)
+    for service_type in reversed(_INFRA_SERVICE_TYPES):
+        await _close_service(injector, service_type)
+    logger.info("All application services closed")
 
 
 def get_container() -> Injector:
@@ -112,4 +86,6 @@ def reset_container() -> None:
 
 
 def provide_service(cls: Type[T]) -> T:
+    if _injector is None:
+        configure_container()
     return get_container().get(cls)
