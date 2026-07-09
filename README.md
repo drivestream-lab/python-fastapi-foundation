@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Template engine** | Cookiecutter |
-| **Version** | see [`VERSION`](VERSION) (currently **0.3.1**) · [CHANGELOG](CHANGELOG.md) |
+| **Version** | see [`VERSION`](VERSION) (currently **0.3.2**) · [CHANGELOG](CHANGELOG.md) |
 | **Stack** | FastAPI · SQLAlchemy async · Postgres · Redis · OTEL · JWT · Injector DI |
 
 ## What the chassis guarantees
