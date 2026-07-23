@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Template engine** | Cookiecutter |
-| **Version** | see [`VERSION`](VERSION) (currently **0.3.2**) · [CHANGELOG](CHANGELOG.md) |
+| **Version** | see [`VERSION`](VERSION) (currently **0.3.3**) · [CHANGELOG](CHANGELOG.md) |
 | **Stack** | FastAPI · SQLAlchemy async · Postgres · Redis · OTEL · JWT · Injector DI |
 
 ## What the chassis guarantees
@@ -44,3 +44,14 @@ make run
 ```
 
 Live verify: `tests/verify/01-health-detailed.md`
+
+## Postgres migrations
+
+Alembic config lives at `postgres_migrations/alembic.ini` (`script_location = %(here)s`). After `make setup`:
+
+```bash
+./scripts/create_postgres_migration.sh "description"
+./scripts/run_postgres_migration.sh head
+```
+
+Scripts prefer `.venv/bin/alembic`, then fall back to `alembic` on `PATH` (Docker system install).
