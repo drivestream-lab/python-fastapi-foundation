@@ -4,6 +4,27 @@ All notable changes to `python-fastapi-foundation` are documented here.
 
 ---
 
+## v0.3.3
+
+### Summary
+
+Fix Postgres Alembic scaffold so first migrations work after `make setup` — single ini under `postgres_migrations/`, ship `script.py.mako`, resolve Alembic via project `.venv` (with PATH fallback for Docker).
+
+### Changes
+
+- **`postgres_migrations/alembic.ini`** — canonical config with `script_location = %(here)s`; removed root `postgres_alembic.ini`
+- **`postgres_migrations/script.py.mako`** — standard Alembic revision template (required for `alembic revision`)
+- **`scripts/create_postgres_migration.sh` / `run_postgres_migration.sh`** — use nested ini; prefer `.venv/bin/alembic`, fall back to PATH `alembic`
+- **`Dockerfile`** — copy `postgres_migrations/` only (no root ini)
+
+### Migration guide
+
+- Regenerate from v0.3.3+ or port the files above into existing scaffolds
+- Update any references from `postgres_alembic.ini` to `postgres_migrations/alembic.ini`
+- No runtime API changes
+
+---
+
 ## v0.3.2
 
 ### Summary
